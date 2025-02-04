@@ -1,7 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
-use csv::Writer;
+use csv::{QuoteStyle, Writer, WriterBuilder};
 use std::error::Error;
 use regex::Regex;
 
@@ -72,7 +72,24 @@ pub async fn get_cdx_bom_license(filepath: &str, output_path: &String){
 }
 
 pub async fn write_simple_cdx_csv(comp: &Components, csv_path: &String) -> Result<(), Box<dyn Error>>{
-    let mut wtr = Writer::from_path(csv_path)?;
+    let mut wtr = WriterBuilder::new()
+        .delimiter(b'\t')
+        .quote_style(QuoteStyle::Always)
+        .from_path(csv_path)?;
+
+    // custom headers
+    let _ = wtr.serialize((
+            "name",
+            "namespace",
+            "group",
+            "version",
+            "package reference",
+            "license id",
+            "license name",
+            "license expression",
+            "alternate package reference"));
+
+    // let mut wtr = Writer::from_path(csv_path)?;
     let mut sbom_name = "";
     let mut sbom_group = "";
     let mut sbom_version = "";

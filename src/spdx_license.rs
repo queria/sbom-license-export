@@ -91,7 +91,24 @@ pub async fn write_ref_csv(licenseRef: &HasLicenseInfo, ref_file_path: &String) 
 }
 
 pub async fn write_simple_spdx_csv(packages: &Packages, license_extract: &HasLicenseInfo, csv_path: &String) -> Result<(), Box<dyn Error>>{
-    let mut wtr = Writer::from_path(csv_path)?;
+    let mut wtr = WriterBuilder::new()
+        .delimiter(b'\t')
+        .quote_style(QuoteStyle::Always)
+        .has_headers(false)
+        .from_path(csv_path)?;
+
+    // custom headers
+    let _ = wtr.serialize((
+            "name",
+            "namespace",
+            "group",
+            "version",
+            "package reference",
+            "license id",
+            "license name",
+            "license expression",
+            "alternate package reference"));
+
     for package in &packages.packages{
         let package_name = &package.name;
         let mut purl = "";
